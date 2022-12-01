@@ -62,7 +62,7 @@ homicides = read.csv('https://raw.githubusercontent.com/washingtonpost/data-homi
     solved = as.numeric(disposition == "Closed by arrest"),
     victim_age = as.numeric(victim_age))%>%
   filter(
-    !city_state %in% c("Dallas, TX", "Phoenix, AZ", "Kansas City, MO", "Tulsa,      AL"), victim_race %in% c("White", "Black"))
+    !city_state %in% c("Dallas, TX", "Phoenix, AZ", "Kansas City, MO", "Tulsa, AL"), victim_race %in% c("White", "Black"))
 ```
 
 **Logistic Regression for Baltimore, MD**
@@ -75,9 +75,23 @@ baltimore_df =
 baltimore_logistic =
   glm(solved ~ victim_age + victim_race + victim_sex, data = baltimore_df, family = binomial()) %>%
   broom::tidy()%>%
-  filter(str_detect(term, "sex"))%>%
+  filter(str_detect(term, "Male"))%>%
   select(term, estimate, std.error)
-  
-  
+```
 
+**GLM for all Cities**
+```{r all cities}
+glm_all =
+  homicides %>%
+  select(city_state, solved, victim_age, victim_race, victim_sex) %>%
+  nest(data = -city_state)%>%
+  mutate(
+    models = map(data, ~glm(solved ~ victim_age + victim_race + victim_sex, 
+    na.action = na.omit, data = .x)),
+    results = map(models, broom::tidy)) %>%
+  select(-data, -models) %>%
+  unnest(results) %>%
+  filter(str_detect(term, "Male"))%>%
+  mutate(lower_95 = estimate - 1.96*std.error, upper_95 = estimate + 1.96*std.error) %>%
+  select(city_state, term, estimate, lower_95, upper_95) 
 ```
