@@ -59,8 +59,25 @@ homicides = read.csv('https://raw.githubusercontent.com/washingtonpost/data-homi
   janitor::clean_names()%>%
   mutate(
     city_state = str_c(city, ", ", state),
-    solved = disposition == "Closed by arrest",
+    solved = as.numeric(disposition == "Closed by arrest"),
     victim_age = as.numeric(victim_age))%>%
   filter(
     !city_state %in% c("Dallas, TX", "Phoenix, AZ", "Kansas City, MO", "Tulsa,      AL"), victim_race %in% c("White", "Black"))
+```
+
+**Logistic Regression for Baltimore, MD**
+```{r baltimore}
+baltimore_df = 
+  homicides %>% 
+  filter(city_state == "Baltimore, MD") %>%
+  select(solved, victim_age, victim_race, victim_sex) 
+
+baltimore_logistic =
+  glm(solved ~ victim_age + victim_race + victim_sex, data = baltimore_df, family = binomial()) %>%
+  broom::tidy()%>%
+  filter(str_detect(term, "sex"))%>%
+  select(term, estimate, std.error)
+  
+  
+
 ```
