@@ -151,3 +151,43 @@ birthweight %>%
   ggplot(aes(x = pred, y = resid)) + geom_point() +
   labs(title = "Backwards Selection Model Residuals vs. Fitted Values")
 ```
+
+Create 2 other models:
+```{r comparison models}
+#Model length at birth and gestation age as predictors
+model_a = lm(bwt ~ blength + gaweeks, data = birthweight)
+
+#Head circumference, length, sexm and all interactions
+model_b = lm(bwt ~ bhead + blength + babysex + bhead * blength + bhead*babysex + blength*babysex + bhead*blength*babysex, data = birthweight)
+```
+
+Compare the 3 models using cross-validated prediction error:
+```{r model comparison}
+#Obtain RMSEs:
+cv_df = crossv_mc(birthweight, 100) %>%
+  mutate(
+    train = map(train, as_tibble),
+    test = map(test, as_tibble),
+    backwards = map(train, ~lm(bwt ~ babysex + bhead + blength + delwt + fincome + gaweeks + mheight + mrace + parity + ppwt + smoken, data = .x)),
+    model_a = map(train, ~lm(bwt ~ blength + gaweeks, data = .x)),
+    model_b = map(train, ~lm(bwt ~ bhead + blength + babysex 
+                                     + bhead*blength 
+                                     + bhead*babysex 
+                                     + blength*babysex 
+                                     + bhead*blength*babysex, data = .x)), 
+    rmse_backwards = map2_dbl(backwards, test, ~rmse(model = .x, data = .y)),
+    rmse_model_a = map2_dbl(model_a, test, ~rmse(model = .x, data = .y)),
+    rmse_model_b = map2_dbl(model_b, test, ~rmse(model = .x, data = .y)))
+
+#Plot prediction error distribution for each candidate model:
+cv_df %>%
+  select(starts_with("rmse")) %>%
+  pivot_longer(
+    everything(),
+    names_to = "model",
+    values_to = "rmse",
+    names_prefix = "rmse_") %>%
+  mutate(model = fct_inorder(model)) %>%
+  ggplot(aes(x = model, y = rmse)) + geom_violin() +
+  labs(title = "RMSEs for 3 Candidate Models", x = "Model", y = "RMSE")
+```
