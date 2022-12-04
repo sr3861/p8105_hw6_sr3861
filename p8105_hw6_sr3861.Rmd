@@ -191,3 +191,7 @@ cv_df %>%
   ggplot(aes(x = model, y = rmse)) + geom_violin() +
   labs(title = "RMSEs for 3 Candidate Models", x = "Model", y = "RMSE")
 ```
+
+From the plots, we can see that the backward selection model has the lowest RMSE and is therefore the most powerful predictor of baby birthweight. Model B with the interaction terms has a slightly higher RMSE than the backwards selection model, and Model A with just 2 predictors has the highest RMSE. 
+
+
