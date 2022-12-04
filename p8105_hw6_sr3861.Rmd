@@ -111,3 +111,33 @@ geom_errorbar(aes(ymin = lower_95, ymax = upper_95)) +
     axis.text.x = element_text(angle = 90, vjust = 0.7, hjust = 1),
     plot.title = element_text(hjust = 0.5))
 ```
+
+
+### Problem 3: Birthweight Regression
+
+Load & clean data:
+```{r birthweight load}
+birthweight = read_csv("./birthweight.csv") %>%
+  janitor::clean_names() %>%
+  mutate(
+    #convert from numeric to factor variables
+    babysex = factor(babysex),
+    frace = factor(frace),
+    malform = factor(malform),
+    mrace = factor(mrace))
+
+str(birthweight)
+
+```
+
+Propose a regression model:
+```{r birthweight stepwise}
+#Fit a model using backwards step-wise selection (data-driven)
+lm_backward <- lm(bwt ~., data = birthweight)
+step(lm_backward, direction = "backward") 
+```
+
+I created a data-driven model using backwards stepwise selection. This process starts with all variables as covariates to predict the outcome (birthweight). It then one by one, removes the lease significant variables from the model until a final model is fitted with only the most significant covariates remaining.
+
+The final model created through this process is:
+bwt ~ babysex + bhead + blength + delwt + fincome + gaweeks + mheight + mrace + parity + ppwt + smoken
