@@ -14,6 +14,7 @@ library(broom)
 library(p8105.datasets)
 library(viridis)
 library(reshape2)
+library(modelr)
 
 knitr::opts_chunk$set(
 	echo = TRUE,
@@ -141,3 +142,12 @@ I created a data-driven model using backwards stepwise selection. This process s
 
 The final model created through this process is:
 bwt ~ babysex + bhead + blength + delwt + fincome + gaweeks + mheight + mrace + parity + ppwt + smoken
+
+Plot of model residuals against fitted values:
+```{r backwards residuals}
+birthweight %>%
+  add_residuals(lm_backward) %>%
+  add_predictions(lm_backward) %>%
+  ggplot(aes(x = pred, y = resid)) + geom_point() +
+  labs(title = "Backwards Selection Model Residuals vs. Fitted Values")
+```
