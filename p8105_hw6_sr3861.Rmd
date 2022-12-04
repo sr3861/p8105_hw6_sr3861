@@ -13,6 +13,7 @@ library(patchwork)
 library(broom)
 library(p8105.datasets)
 library(viridis)
+library(reshape2)
 
 knitr::opts_chunk$set(
 	echo = TRUE,
@@ -94,4 +95,19 @@ glm_all =
   filter(str_detect(term, "Male"))%>%
   mutate(lower_95 = estimate - 1.96*std.error, upper_95 = estimate + 1.96*std.error) %>%
   select(city_state, term, estimate, lower_95, upper_95) 
+
+#Plot
+glm_all %>%
+  mutate(fct_reorder(city_state, estimate))%>%
+  ggplot(aes(x = reorder(city_state, estimate), y = estimate)) +
+  geom_point() +
+geom_errorbar(aes(ymin = lower_95, ymax = upper_95)) +
+  labs(
+    title = "Odds Ratio of Solved Homicides for Male vs. Female Victims by City",
+    x = "City, State",
+    y = "Odds Ratio"
+  ) +
+  theme(
+    axis.text.x = element_text(angle = 90, vjust = 0.7, hjust = 1),
+    plot.title = element_text(hjust = 0.5))
 ```
